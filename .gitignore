@@ -1,0 +1,10 @@
+.config
+include/config
+include/generated
+.*.cmd
+scripts/basic/fixdep
+scripts/kconfig/*.o
+scripts/kconfig/conf
+scripts/kconfig/lexer.*.c
+scripts/kconfig/parser.*.c
+scripts/kconfig/parser.*.h
