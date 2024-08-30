@@ -239,13 +239,17 @@ endif
 
 
 archscripts: scripts_basic
-	$(Q)$(MAKE) $(build)=arch/x86/tools relocs
+	@echo $(INDENT) $(MAKE) $(build)=arch/x86/tools relocs
+	$(Q)$(MAKE) INDENT=$(INDENT):$@:relocs $(build)=arch/x86/tools relocs
+	@echo $(INDENT) $(MAKE) $(build)=arch/x86/tools relocs done
 
 ###
 # Syscall table generation
 
 archheaders:
-	$(Q)$(MAKE) $(build)=arch/x86/entry/syscalls all
+	@echo $(INDENT) $(MAKE) $(build)=arch/x86/entry/syscalls all
+	$(Q)$(MAKE) INDENT=$(INDENT):$@:all $(build)=arch/x86/entry/syscalls all
+	@echo $(INDENT) $(MAKE) $(build)=arch/x86/entry/syscalls done
 
 ###
 # Kernel objects
@@ -319,6 +323,8 @@ archprepare: $(orc_hash_h)
 endif
 
 archclean:
+	@echo $(INDENT):$@ $(Q)rm -rf $(objtree)/arch/i386
+	@echo $(INDENT):$@ $(Q)rm -rf $(objtree)/arch/x86_64
 	$(Q)rm -rf $(objtree)/arch/i386
 	$(Q)rm -rf $(objtree)/arch/x86_64
 

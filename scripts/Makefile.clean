@@ -44,8 +44,8 @@ quiet_cmd_clean = CLEAN   $(obj)
       cmd_clean = printf '$(obj)/%s ' $(patsubst $(obj)/%,%,$(__clean-files)) | xargs rm -rf
 
 __clean: $(subdir-ymn)
+	@echo $(INDENT) remove files: $(__clean-files)
 ifneq ($(strip $(__clean-files)),)
-	@echo $(INDENT) $(call cmd,clean)
 	$(call cmd,clean)
 endif
 	@:
@@ -57,6 +57,9 @@ endif
 
 # Descending
 # ---------------------------------------------------------------------------
+ifneq ($(subdir-ymn),)
+$(info $(INDENT) clean sub dirs $(subdir-ymn))
+endif
 
 PHONY += $(subdir-ymn)
 $(subdir-ymn):

@@ -39,7 +39,6 @@ xconfig-prog	:= qconf
 define config_rule
 PHONY += $(1)
 $(1): $(obj)/$($(1)-prog)
-	@echo $(INDENT) build $(1)
 	$(Q)$$< $(silent) $(Kconfig)
 
 PHONY += build_$(1)

@@ -39,7 +39,7 @@ subdir-ccflags-y :=
 
 include $(srctree)/scripts/Kbuild.include
 include $(srctree)/scripts/Makefile.compiler
-$(info $(INDENT) will include kbuild-file: $(kbuild-file))
+$(info $(INDENT) will include kbuild-file: $(kbuild-file) goal = $(MAKECMDGOALS))
 include $(kbuild-file)
 include $(srctree)/scripts/Makefile.lib
 
@@ -463,6 +463,14 @@ targets += $(call intermediate_targets, .asn1.o, .asn1.c .asn1.h) \
 # Build
 # ---------------------------------------------------------------------------
 #
+ifeq ($(MAKECMDGOALS),)
+$(info $(INDENT) deps of default goal = $(if $(KBUILD_BUILTIN), $(targets-for-builtin)) \
+	 $(if $(KBUILD_MODULES), $(targets-for-modules)) \
+	 $(subdir-ym) $(always-y))
+else
+$(info $(INDENT) will build goal $(MAKECMDGOALS) at $(kbuild-file))
+endif
+
 $(obj)/: $(if $(KBUILD_BUILTIN), $(targets-for-builtin)) \
 	 $(if $(KBUILD_MODULES), $(targets-for-modules)) \
 	 $(subdir-ym) $(always-y)

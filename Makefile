@@ -222,6 +222,8 @@ ifeq ($(filter --no-print-directory, $(MAKEFLAGS)),)
 # You may end up recursing into __sub-make twice. This is needed due to the
 # behavior change in GNU Make 4.4.1.
 need-sub-make := 1
+else
+$(info $(INDENT) make flags contains --no-print-directory)
 endif
 
 ifeq ($(need-sub-make),1)
@@ -234,12 +236,12 @@ $(filter-out $(this-makefile), $(MAKECMDGOALS)) __all: __sub-make
 # Invoke a second make in the output directory, passing relevant variables
 __sub-make:
 	@echo $(INDENT) $(MAKE) $(no-print-directory) -C $(abs_objtree) -f $(abs_srctree)/Makefile $(MAKECMDGOALS)
-	$(Q)$(MAKE) INDENT=$(INDENT):$@ $(no-print-directory) -C $(abs_objtree) \
+	$(Q)$(MAKE) INDENT=$(INDENT):__sub-make:$(MAKECMDGOALS) $(no-print-directory) -C $(abs_objtree) \
 	-f $(abs_srctree)/Makefile $(MAKECMDGOALS)
 	@echo $(INDENT) $(MAKE) $(no-print-directory) -C $(abs_objtree) -f $(abs_srctree)/Makefile $(MAKECMDGOALS) done
 
 else # need-sub-make
-
+$(info $(INDENT) nosubmake)
 # We process the rest of the Makefile if this is the final invocation of make
 
 ifeq ($(abs_srctree),$(abs_objtree))
@@ -779,7 +781,7 @@ ifdef CONFIG_FUNCTION_TRACER
   CC_FLAGS_FTRACE := -pg
 endif
 
-$(info $(INDENT) include $(srctree)/arch/$(SRCARCH)/Makefile)
+$(info $(INDENT) include arch makefile)
 include $(srctree)/arch/$(SRCARCH)/Makefile
 
 ifdef need-config
@@ -1144,6 +1146,8 @@ ifdef CONFIG_TRIM_UNUSED_KSYMS
 KBUILD_MODULES := 1
 endif
 
+$(info $(INDENT) kbuild vmlinux objs = $(KBUILD_VMLINUX_OBJS))
+
 # '$(AR) mPi' needs 'T' to workaround the bug of llvm-ar <= 14
 quiet_cmd_ar_vmlinux.a = AR      $@
       cmd_ar_vmlinux.a = \
@@ -1156,6 +1160,7 @@ vmlinux.a: $(KBUILD_VMLINUX_OBJS) scripts/head-object-list.txt FORCE
 	$(call if_changed,ar_vmlinux.a)
 
 PHONY += vmlinux_o
+
 vmlinux_o: vmlinux.a $(KBUILD_VMLINUX_LIBS)
 	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.vmlinux_o
 
@@ -1180,7 +1185,7 @@ vmlinux: vmlinux.o $(KBUILD_LDS) modpost
 
 # The actual objects are generated when descending,
 # make sure no implicit rule kicks in
-$(sort $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)): . ;
+$(sort $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)): .
 
 ifeq ($(origin KERNELRELEASE),file)
 filechk_kernel.release = $(srctree)/scripts/setlocalversion $(srctree)
@@ -1190,6 +1195,7 @@ endif
 
 # Store (new) KERNELRELEASE string in include/config/kernel.release
 include/config/kernel.release: FORCE
+	@echo $(INDENT) build $@
 	$(call filechk,kernel.release)
 
 # Additional helpers built in scripts/
@@ -1197,7 +1203,9 @@ include/config/kernel.release: FORCE
 # in parallel
 PHONY += scripts
 scripts: scripts_basic scripts_dtc
-	$(Q)$(MAKE) $(build)=$(@)
+	@echo $(INDENT) $(MAKE) $(build)=$(@)
+	$(Q)$(MAKE) INDENT=$(INDENT):$@ $(build)=$(@)
+	@echo $(INDENT) $(MAKE) $(build)=$(@) done
 
 # Things we need to do before we recursively start building the kernel
 # or the modules are listed in "prepare".
@@ -1212,8 +1220,8 @@ archprepare: outputmakefile archheaders archscripts scripts include/config/kerne
 	include/generated/compile.h include/generated/autoconf.h remove-stale-files
 
 prepare0: archprepare
-	$(Q)$(MAKE) $(build)=scripts/mod
-	$(Q)$(MAKE) $(build)=. prepare
+	$(Q)$(MAKE) INDENT=$(INDENT):$@ $(build)=scripts/mod
+	$(Q)$(MAKE) INDENT=$(INDENT):prepare $(build)=. prepare
 
 # All the preparing..
 prepare: prepare0
@@ -1224,6 +1232,7 @@ endif
 
 PHONY += remove-stale-files
 remove-stale-files:
+	@echo $(INDENT):$@ $(srctree)/scripts/remove-stale-files
 	$(Q)$(srctree)/scripts/remove-stale-files
 
 # Support for using generic headers in asm-generic
@@ -1231,11 +1240,19 @@ asm-generic := -f $(srctree)/scripts/Makefile.asm-generic obj
 
 PHONY += asm-generic uapi-asm-generic
 asm-generic: uapi-asm-generic
-	$(Q)$(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/asm \
+	@echo $(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/asm \
 	generic=include/asm-generic
+	$(Q)$(MAKE) INDENT=$(INDENT):$@ $(asm-generic)=arch/$(SRCARCH)/include/generated/asm \
+	generic=include/asm-generic
+	@echo $(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/asm \
+	generic=include/asm-generic done
 uapi-asm-generic:
-	$(Q)$(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/uapi/asm \
+	@echo $(INDENT) $(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/uapi/asm \
 	generic=include/uapi/asm-generic
+	$(Q)$(MAKE) INDENT=$(INDENT):$@ $(asm-generic)=arch/$(SRCARCH)/include/generated/uapi/asm \
+	generic=include/uapi/asm-generic
+	@echo $(INDENT) $(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/uapi/asm \
+	generic=include/uapi/asm-generic done
 
 # Generate some files
 # ---------------------------------------------------------------------------
@@ -1270,15 +1287,18 @@ endef
 $(version_h): PATCHLEVEL := $(or $(PATCHLEVEL), 0)
 $(version_h): SUBLEVEL := $(or $(SUBLEVEL), 0)
 $(version_h): FORCE
+	@echo $(INDENT) build $@
 	$(call filechk,version.h)
 
 include/generated/utsrelease.h: include/config/kernel.release FORCE
+	@echo $(INDENT) build $@
 	$(call filechk,utsrelease.h)
 
 filechk_compile.h = $(srctree)/scripts/mkcompile_h \
 	"$(UTS_MACHINE)" "$(CONFIG_CC_VERSION_TEXT)" "$(LD)"
 
 include/generated/compile.h: FORCE
+	@echo $(INDENT) build $@
 	$(call filechk,compile.h)
 
 PHONY += headerdep
@@ -1309,8 +1329,8 @@ hdr-inst := -f $(srctree)/scripts/Makefile.headersinst obj
 PHONY += headers
 headers: $(version_h) scripts_unifdef uapi-asm-generic archheaders archscripts
 	$(if $(filter um, $(SRCARCH)), $(error Headers not exportable for UML))
-	$(Q)$(MAKE) $(hdr-inst)=include/uapi
-	$(Q)$(MAKE) $(hdr-inst)=arch/$(SRCARCH)/include/uapi
+	$(Q)$(MAKE) INDENT=$(INDENT):$@ $(hdr-inst)=include/uapi
+	$(Q)$(MAKE) INDENT=$(INDENT):$@ $(hdr-inst)=arch/$(SRCARCH)/include/uapi
 
 ifdef CONFIG_HEADERS_INSTALL
 prepare: headers
@@ -1318,7 +1338,7 @@ endif
 
 PHONY += scripts_unifdef
 scripts_unifdef: scripts_basic
-	$(Q)$(MAKE) $(build)=scripts scripts/unifdef
+	$(Q)$(MAKE) INDENT=$(INDENT):$@:scripts/unifdef $(build)=scripts scripts/unifdef
 
 # ---------------------------------------------------------------------------
 # Install
@@ -1337,7 +1357,7 @@ quiet_cmd_install = INSTALL $(INSTALL_PATH)
 PHONY += vdso_install
 vdso_install: export INSTALL_FILES = $(vdso-install-y)
 vdso_install:
-	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.vdsoinst
+	$(Q)$(MAKE) INDENT=$(INDENT):$@ -f $(srctree)/scripts/Makefile.vdsoinst
 
 # ---------------------------------------------------------------------------
 # Tools
@@ -1438,7 +1458,9 @@ endif
 
 PHONY += scripts_dtc
 scripts_dtc: scripts_basic
-	$(Q)$(MAKE) $(build)=scripts/dtc
+	@echo $(INDENT) $(MAKE) $(build)=scripts/dtc
+	$(Q)$(MAKE) INDENT=$(INDENT):$@ $(build)=scripts/dtc
+	@echo $(INDENT) $(MAKE) $(build)=scripts/dtc done
 
 ifneq ($(filter dt_binding_check, $(MAKECMDGOALS)),)
 export CHECK_DT_BINDING=y
@@ -1530,7 +1552,8 @@ mrproper-dirs      := $(addprefix _mrproper_,scripts)
 
 PHONY += $(mrproper-dirs) mrproper
 $(mrproper-dirs):
-	$(Q)$(MAKE) $(clean)=$(patsubst _mrproper_%,%,$@)
+	@echo $(INDENT):mrproper build $@
+	$(Q)$(MAKE) INDENT=$(INDENT):mrproper:$@ $(clean)=$(patsubst _mrproper_%,%,$@)
 
 mrproper: clean $(mrproper-dirs)
 	$(call cmd,rmfiles)
@@ -1933,7 +1956,9 @@ endif
 # Error messages still appears in the original language
 PHONY += $(build-dir)
 $(build-dir): prepare
-	$(Q)$(MAKE) $(build)=$@ need-builtin=1 need-modorder=1 $(single-goals)
+	@echo $(INDENT) $(Q)$(MAKE) $(build)=$@ need-builtin=1 need-modorder=1 $(single-goals)
+	$(Q)$(MAKE) INDENT=$(INDENT):$@ $(build)=$@ need-builtin=1 need-modorder=1 $(single-goals)
+	@echo $(INDENT) $(Q)$(MAKE) $(build)=$@ need-builtin=1 need-modorder=1 $(single-goals) done
 
 clean-dirs := $(addprefix _clean_, $(clean-dirs))
 PHONY += $(clean-dirs) clean
@@ -1943,6 +1968,7 @@ $(clean-dirs):
 	@echo $(INDENT) $(MAKE) $(clean)=$(patsubst _clean_%,%,$@) done
 
 clean: $(clean-dirs)
+	@echo $(INDENT) dep = $^
 	$(call cmd,rmfiles)
 	@find $(or $(KBUILD_EXTMOD), .) $(RCS_FIND_IGNORE) \
 		\( -name '*.[aios]' -o -name '*.rsi' -o -name '*.ko' -o -name '.*.cmd' \
