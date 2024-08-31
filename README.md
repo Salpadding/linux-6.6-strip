@@ -229,8 +229,8 @@ archprepare: outputmakefile archheaders archscripts scripts include/config/kerne
 	include/generated/compile.h include/generated/autoconf.h remove-stale-files
 
 prepare0: archprepare
-	$(Q)$(MAKE) $(build)=scripts/mod
-	$(Q)$(MAKE) $(build)=. prepare
+	$(Q)$(MAKE) INDENT=$(INDENT):$@ $(build)=scripts/mod
+	$(Q)$(MAKE) INDENT=$(INDENT):$@:prepare $(build)=. prepare
 
 prepare: prepare0
 
@@ -412,3 +412,36 @@ filechk_compile.h = $(srctree)/scripts/mkcompile_h \
 似乎是删除临时文件的
 
 
+## 遇到的错误
+
+遇到了一个 make prepare 产生无限递归的问题,原因是没有 copy 项目根目录下的 Kbuild
+
+```make
+prepare0: archprepare
+	$(Q)$(MAKE) $(build)=scripts/mod
+
+    # 展开为: make -f scripts/Makefile.build prepare
+    # scripts/Makefile.build 会 include 根目录下的 Kbuild
+	$(Q)$(MAKE) $(build)=. prepare
+
+# All the preparing..
+prepare: prepare0
+```
+
+以上的代码看上去确实是循环依赖, 因为 prepare0 回调用 prepare
+
+```make
+kbuild-file = $(or $(wildcard $(kbuild-dir)/Kbuild),$(kbuild-dir)/Makefile)
+```
+
+但是看了下 Kbuild.include 的代码, 根目录下的 Kbuild 优先级会高于 Makefile
+所以实际上 make -f scripts/Makefile.build prepare 会 include Kbuild 而不是 Makefile
+
+Kbuild 里面对 prepare 的依赖定义如下
+
+这里会用 kernel/time/timeconst.bc 生成 include/generated/timeconst.h
+
+```make
+prepare: $(offsets-file) missing-syscalls $(atomic-checks)
+	@:
+```

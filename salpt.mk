@@ -1,4 +1,0 @@
-PHONY += abc
-
-all: abc
-

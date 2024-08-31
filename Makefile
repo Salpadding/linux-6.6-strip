@@ -1185,7 +1185,7 @@ vmlinux: vmlinux.o $(KBUILD_LDS) modpost
 
 # The actual objects are generated when descending,
 # make sure no implicit rule kicks in
-$(sort $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)): .
+$(sort $(KBUILD_LDS) $(KBUILD_VMLINUX_OBJS) $(KBUILD_VMLINUX_LIBS)): . ;
 
 ifeq ($(origin KERNELRELEASE),file)
 filechk_kernel.release = $(srctree)/scripts/setlocalversion $(srctree)
@@ -1220,8 +1220,12 @@ archprepare: outputmakefile archheaders archscripts scripts include/config/kerne
 	include/generated/compile.h include/generated/autoconf.h remove-stale-files
 
 prepare0: archprepare
+	@echo $(INDENT) $(MAKE) $(build)=scripts/mod
 	$(Q)$(MAKE) INDENT=$(INDENT):$@ $(build)=scripts/mod
+	@echo $(INDENT) $(MAKE) $(build)=scripts/mod done
+	@echo $(INDENT) $(MAKE) $(build)=. prepare
 	$(Q)$(MAKE) INDENT=$(INDENT):prepare $(build)=. prepare
+	@echo $(INDENT) $(MAKE) $(build)=. prepare done
 
 # All the preparing..
 prepare: prepare0
@@ -1240,11 +1244,11 @@ asm-generic := -f $(srctree)/scripts/Makefile.asm-generic obj
 
 PHONY += asm-generic uapi-asm-generic
 asm-generic: uapi-asm-generic
-	@echo $(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/asm \
+	@echo $(INDENT) $(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/asm \
 	generic=include/asm-generic
 	$(Q)$(MAKE) INDENT=$(INDENT):$@ $(asm-generic)=arch/$(SRCARCH)/include/generated/asm \
 	generic=include/asm-generic
-	@echo $(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/asm \
+	@echo $(INDENT) $(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/asm \
 	generic=include/asm-generic done
 uapi-asm-generic:
 	@echo $(INDENT) $(MAKE) $(asm-generic)=arch/$(SRCARCH)/include/generated/uapi/asm \
@@ -1394,7 +1398,9 @@ tools/: FORCE
 
 tools/%: FORCE
 	$(Q)mkdir -p $(objtree)/tools
-	$(Q)$(MAKE) LDFLAGS= MAKEFLAGS="$(tools_silent) $(filter --j% -j,$(MAKEFLAGS))" O=$(abspath $(objtree)) subdir=tools -C $(srctree)/tools/ $*
+	@echo $(INDENT) $(MAKE) LDFLAGS= MAKEFLAGS="$(tools_silent) $(filter --j% -j,$(MAKEFLAGS))" O=$(abspath $(objtree)) subdir=tools -C $(srctree)/tools/ $*
+	$(Q)$(MAKE) INDENT=$(INDENT):$@ LDFLAGS= MAKEFLAGS="$(tools_silent) $(filter --j% -j,$(MAKEFLAGS))" O=$(abspath $(objtree)) subdir=tools -C $(srctree)/tools/ $*
+	@echo $(MAKE) LDFLAGS= MAKEFLAGS="$(tools_silent) $(filter --j% -j,$(MAKEFLAGS))" O=$(abspath $(objtree)) subdir=tools -C $(srctree)/tools/ $* done
 
 # ---------------------------------------------------------------------------
 # Kernel selftest
