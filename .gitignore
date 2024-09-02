@@ -67,3 +67,5 @@ arch/x86/include/generated
 /System.map
 /compile_commands.json
 /modules.builtin.modinfo
+vmlinux.bin.xz
+bzImage
