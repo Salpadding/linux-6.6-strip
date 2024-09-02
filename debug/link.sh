@@ -1,0 +1,1 @@
+ld -m elf_x86_64 -z noexecstack --no-warn-rwx-segments -z max-page-size=0x200000 --build-id=sha1 --orphan-handling=warn --script=./arch/x86/kernel/vmlinux.lds -o vmlinux --whole-archive vmlinux.o init/version-timestamp.o --no-whole-archive --start-group --end-group

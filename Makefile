@@ -1156,13 +1156,18 @@ quiet_cmd_ar_vmlinux.a = AR      $@
 	$(AR) mPiT $$($(AR) t $@ | sed -n 1p) $@ $$($(AR) t $@ | grep -F -f $(srctree)/scripts/head-object-list.txt)
 
 targets += vmlinux.a
+
 vmlinux.a: $(KBUILD_VMLINUX_OBJS) scripts/head-object-list.txt FORCE
+	@echo $(INDENT):$@ deps = $^
 	$(call if_changed,ar_vmlinux.a)
 
 PHONY += vmlinux_o
 
+$(info KBUILD_VMLINUX_LIBS = $(KBUILD_VMLINUX_LIBS))
 vmlinux_o: vmlinux.a $(KBUILD_VMLINUX_LIBS)
-	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.vmlinux_o
+	@echo $(INDENT) $(MAKE) -f $(srctree)/scripts/Makefile.vmlinux_o
+	$(Q)$(MAKE) INDENT=$(INDENT):$@ -f $(srctree)/scripts/Makefile.vmlinux_o
+	@echo $(INDENT) $(MAKE) -f $(srctree)/scripts/Makefile.vmlinux_o done
 
 vmlinux.o modules.builtin.modinfo modules.builtin: vmlinux_o
 	@:
@@ -1181,7 +1186,9 @@ PHONY += vmlinux
 vmlinux: private _LDFLAGS_vmlinux := $(LDFLAGS_vmlinux)
 vmlinux: export LDFLAGS_vmlinux = $(_LDFLAGS_vmlinux)
 vmlinux: vmlinux.o $(KBUILD_LDS) modpost
-	$(Q)$(MAKE) -f $(srctree)/scripts/Makefile.vmlinux
+	@echo $(INDENT)$(MAKE) -f $(srctree)/scripts/Makefile.vmlinux
+	$(Q)$(MAKE) INDENT=$(INDENT):$@ -f $(srctree)/scripts/Makefile.vmlinux
+	@echo $(INDENT)$(MAKE) -f $(srctree)/scripts/Makefile.vmlinux done
 
 # The actual objects are generated when descending,
 # make sure no implicit rule kicks in

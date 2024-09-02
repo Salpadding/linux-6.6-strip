@@ -1,0 +1,19 @@
+#define __stringify_1(x...)	#x
+#define __stringify(x...)	__stringify_1(x)
+
+#define ASM_NL ;
+
+#define __EXPORT_SYMBOL_REF(sym)			\
+	.balign 8				ASM_NL	\
+	.quad sym
+
+#define ___EXPORT_SYMBOL(sym, license, ns)		\
+	.section ".export_symbol","a"		ASM_NL	\
+	__export_symbol_##sym:			ASM_NL	\
+		.asciz license			ASM_NL	\
+		.asciz ns			ASM_NL	\
+		__EXPORT_SYMBOL_REF(sym)	ASM_NL	\
+	.previous
+
+
+asm(__stringify(___EXPORT_SYMBOL(x,"","")))

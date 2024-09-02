@@ -76,7 +76,7 @@ prepare: $(offsets-file) missing-syscalls $(atomic-checks)
 
 # Ordinary directory descending
 # ---------------------------------------------------------------------------
-
+$(info $(INDENT) arch obj-y = arch/$(SRCARCH) $(ARCH_CORE) $(ARCH_LIB) $(ARCH_DRIVERS))
 obj-y			+= init/
 obj-y			+= usr/
 obj-y			+= arch/$(SRCARCH)/
