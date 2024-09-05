@@ -347,12 +347,16 @@ unsigned long decompress_kernel(unsigned char *outbuf, unsigned long virt_addr,
 		free_mem_ptr     = (unsigned long)boot_heap;
 		free_mem_end_ptr = (unsigned long)boot_heap + sizeof(boot_heap);
 	}
-
+#if 0
 	if (__decompress(input_data, input_len, NULL, NULL, outbuf, output_len,
 			 NULL, error) < 0)
 		return ULONG_MAX;
-
+#endif
+#if 0
 	entry = parse_elf(outbuf);
+#else
+    entry = 0;
+#endif
 	handle_relocations(outbuf, output_len, virt_addr);
 
 	return entry;

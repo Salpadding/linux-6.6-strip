@@ -7,7 +7,7 @@ diff() {
 # 检查哪些文件应该 git ignore 但是没有 ignore 的
 new_files() {
     find . -type f | grep -v '^\./\.git' |
-        grep -E -v '^\./build\.sh|^\./README\.md|^\./debug\.mk' |
+        grep -E -v '^\./build\.sh|^\./README\.md|.mk$|Makefile.bak$|.py$|.txt$|.js$|.md$' |
     while read -r line; do
         [[ -f ../linux-6.6.47-raw/${line} ]] && continue
         git check-ignore "${line}" -q && continue

@@ -69,3 +69,7 @@ arch/x86/include/generated
 /modules.builtin.modinfo
 vmlinux.bin.xz
 bzImage
+.vscode
+__pycache__
+*.pyc
+/tags

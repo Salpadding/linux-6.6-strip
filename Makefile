@@ -1165,6 +1165,7 @@ PHONY += vmlinux_o
 
 $(info KBUILD_VMLINUX_LIBS = $(KBUILD_VMLINUX_LIBS))
 vmlinux_o: vmlinux.a $(KBUILD_VMLINUX_LIBS)
+	@echo $(INDENT) build $@ from $^
 	@echo $(INDENT) $(MAKE) -f $(srctree)/scripts/Makefile.vmlinux_o
 	$(Q)$(MAKE) INDENT=$(INDENT):$@ -f $(srctree)/scripts/Makefile.vmlinux_o
 	@echo $(INDENT) $(MAKE) -f $(srctree)/scripts/Makefile.vmlinux_o done
@@ -1186,6 +1187,7 @@ PHONY += vmlinux
 vmlinux: private _LDFLAGS_vmlinux := $(LDFLAGS_vmlinux)
 vmlinux: export LDFLAGS_vmlinux = $(_LDFLAGS_vmlinux)
 vmlinux: vmlinux.o $(KBUILD_LDS) modpost
+	@echo $(INDENT) build $@ from $^
 	@echo $(INDENT)$(MAKE) -f $(srctree)/scripts/Makefile.vmlinux
 	$(Q)$(MAKE) INDENT=$(INDENT):$@ -f $(srctree)/scripts/Makefile.vmlinux
 	@echo $(INDENT)$(MAKE) -f $(srctree)/scripts/Makefile.vmlinux done
