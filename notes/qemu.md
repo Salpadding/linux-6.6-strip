@@ -168,3 +168,32 @@ pmjump.S 里面又把 boot_params 的地址传给了 esi, 最后用 `jmpl *%eax`
 5. 解压缩到哪里?
 
 解压缩到 16MB
+
+
+6. 如何跳过解压缩和 parse_elf?
+
+因为解压缩和 parse_elf 容易产生段错误, 所以调试时候可以跳过, 让 qemu 直接加载 elf
+
+注释掉代码
+
+```c
+#if 0
+	if (__decompress(input_data, input_len, NULL, NULL, outbuf, output_len,
+			 NULL, error) < 0)
+		return ULONG_MAX;
+#endif
+#if 0
+	entry = parse_elf(outbuf);
+#else
+    entry = 0;
+#endif
+```
+
+令 qemu 加载 elf
+
+```sh
+qemu-system-x86_64 -cpu 'SandyBridge' \
+	    -kernel arch/x86_64/boot/bzImage \
+		-m 256 -display curses \
+		-device loader,file=arch/x86/boot/compressed/vmlinux.bin
+```

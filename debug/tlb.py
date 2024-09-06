@@ -1,5 +1,4 @@
 tlb = gdb.execute('monitor info tlb',to_string=True)
-interval_size = 0x200000
 
 lines = []
 for line in tlb.split('\n'):
@@ -9,46 +8,65 @@ for line in tlb.split('\n'):
     vaddr = int(splited[0], 16)
     paddr_attr = splited[1].split()
     paddr = int(paddr_attr[0], 16)
+    # page size = 2MB when P is set
+    page_size = 0x200000  if paddr_attr[1][2] == 'P' else 0x1000
     attr = paddr_attr[1][-4:len(paddr_attr[1])]
 
-    lines.append([vaddr, paddr, attr])
+    lines.append({
+        'vaddr': vaddr,
+        'paddr': paddr,
+        'attr': attr,
+        'page_size': page_size,
+    })
 
+
+vstart = None
+vend = None
+pstart = None
+pend = None
+attr = None
+maps = []
+
+def merge():
+    global vstart, vend, pstart, pend, attr, maps
+    if vstart == None:
+        return
+
+    maps.append({
+        'vstart': hex(vstart),
+        'vend': hex(vend),
+        'pstart': hex(pstart),
+        'pend': hex(pend),
+        'size': hex(pend - pstart),
+        'attr': attr
+    })
+    vstart = vend = pstart = pend = attr = None
 
 if not len(lines):
     exit(0)
 
 
-to_merge = []
-maps = []
 
-def merge(to_merge, maps):
-    if len(to_merge) == 0: return
-    maps.append({
-        'vstart': hex(to_merge[0][0]),
-        'vend': hex(to_merge[-1][0] + interval_size),
-        'pstart': hex(to_merge[0][1]),
-        'pend': hex(to_merge[-1][1] + interval_size),
-        'size': hex(to_merge[-1][1] - to_merge[0][1] + interval_size),
-        'attr': to_merge[0][2],
-    })
+for line in lines:
+    if vstart == None:
+        vstart = line['vaddr']
+        vend = vstart + line['page_size']
+        pstart = line['paddr']
+        pend = pstart + line['page_size']
+        attr = line['attr']
+        continue 
 
-for i in range(0, len(lines)):
-    if len(to_merge) == 0:
-        to_merge.append(lines[i])
+    if line['vaddr'] == vend and \
+            line['paddr'] == pend and \
+            line['attr'] == attr:
+
+        vend = vend + line['page_size']
+        pend = pend + line['page_size']
         continue
 
-    cur = lines[i]
-    if cur[2] == to_merge[-1][2] and \
-        cur[1] == to_merge[-1][1] + interval_size and \
-        cur[0] == to_merge[-1][0] + interval_size:
-        to_merge.append(cur)
-        continue
-    
-    merge(to_merge, maps)
-    to_merge = [cur]
-
-merge(to_merge, maps)
+    merge()
 
 
-print(len(maps))
+merge()
+
 for m in maps: print(m)
