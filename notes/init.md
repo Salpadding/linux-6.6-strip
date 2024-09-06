@@ -166,3 +166,15 @@ unsigned long vend = vstart + 10 << 20;
 movq	$1f, %rax
 jmp	*%rax
 ```
+
+
+## 跳转到 x86_64_startup_kernel
+
+```asm
+pushq	$.Lafter_lret	# put return address on stack for unwinder
+xorl	%ebp, %ebp	# clear frame pointer
+movq	initial_code(%rip), %rax
+pushq	$__KERNEL_CS	# set correct cs
+pushq	%rax		# target address in negative space
+lretq
+```

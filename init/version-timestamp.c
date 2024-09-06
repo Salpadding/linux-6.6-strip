@@ -525,7 +525,6 @@ EMPTY_FUNC_DEF(_find_first_zero_bit)
 
 EMPTY_VAR_DEF(__irq_regs)
 EMPTY_VAR_DEF(system_state)
-EMPTY_VAR_DEF(init_task)
 EMPTY_VAR_DEF(dummy_irq_chip)
 EMPTY_VAR_DEF(max_low_pfn)
 EMPTY_VAR_DEF(min_low_pfn)
@@ -542,7 +541,11 @@ EMPTY_VAR_DEF(arch_task_struct_size)
 EMPTY_VAR_DEF(slab_is_available)
 EMPTY_VAR_DEF(__SCT__perf_snapshot_branch_stack)
 EMPTY_VAR_DEF(static_key_initialized)
-
+EMPTY_VAR_DEF(init_struct_pid)
+EMPTY_VAR_DEF(init_cred)
+EMPTY_VAR_DEF(init_fs)
+EMPTY_VAR_DEF(init_files)
+EMPTY_VAR_DEF(init_nsproxy)
 
 
 EMPTY_FUNC_DEF(__SCK__perf_snapshot_branch_stack)
