@@ -2,5 +2,4 @@ target remote 127.0.0.1:1234
 
 file vmlinux
 
-b *0xffffffff810000ad
-
+b x86_64_start_kernel

@@ -151,3 +151,13 @@ asm(".section \".export_symbol\",\"a\" ; __export_symbol_x: ; .asciz \"\" ; .asc
 ... ./arch/x86/include/asm/linkage.h
 .... ./arch/x86/include/asm/ibt.h
 ```
+
+9. this_cpu_write
+
+展开为如下代码, 就是给 var 加上 gs 的offset
+
+```asm
+asm volatile("movq %[val], %%gs:%[var]"
+             : [var] "+m" (_var)
+             : [val] "re" (x));
+```

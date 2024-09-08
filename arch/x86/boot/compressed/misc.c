@@ -348,6 +348,7 @@ unsigned long decompress_kernel(unsigned char *outbuf, unsigned long virt_addr,
 		free_mem_end_ptr = (unsigned long)boot_heap + sizeof(boot_heap);
 	}
 #if 0
+
 	if (__decompress(input_data, input_len, NULL, NULL, outbuf, output_len,
 			 NULL, error) < 0)
 		return ULONG_MAX;

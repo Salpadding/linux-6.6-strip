@@ -5,13 +5,14 @@
 
 ccflags-y := -fno-function-sections -fno-data-sections
 
-obj-y                          := main.o version.o mounts.o
+obj-y                          := main.o
+#obj-y += version.o mounts.o
 ifneq ($(CONFIG_BLK_DEV_INITRD),y)
-obj-y                          += noinitramfs.o
+#obj-y                          += noinitramfs.o
 else
-obj-$(CONFIG_BLK_DEV_INITRD)   += initramfs.o
+#obj-$(CONFIG_BLK_DEV_INITRD)   += initramfs.o
 endif
-obj-$(CONFIG_GENERIC_CALIBRATE_DELAY) += calibrate.o
+#obj-$(CONFIG_GENERIC_CALIBRATE_DELAY) += calibrate.o
 
 obj-y                          += init_task.o
 
@@ -63,4 +64,3 @@ KASAN_SANITIZE_version-timestamp.o := n
 KCSAN_SANITIZE_version-timestamp.o := n
 GCOV_PROFILE_version-timestamp.o := n
 
-obj-y += patch.o
